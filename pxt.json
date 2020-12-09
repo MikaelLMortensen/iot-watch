@@ -5,7 +5,9 @@
         "core": "*",
         "radio": "*",
         "microphone": "*",
-        "Environment-and-Science-IoT": "github:tinkertanker/pxt-iot-environment-kit#v4.2.1"
+        "Environment-and-Science-IoT": "github:tinkertanker/pxt-iot-environment-kit#v4.2.1",
+        "pxt-esp8266_thingspeak": "github:alankrantas/pxt-esp8266_thingspeak#v0.0.3",
+        "pxt-wifi": "github:e-radionicacom/pxt-wifi#v1.0.1"
     },
     "files": [
         "main.blocks",
