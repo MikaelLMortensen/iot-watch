@@ -1,6 +1,9 @@
 input.onButtonPressed(Button.A, function () {
     let setHour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
     setHour = setHour + 1
+    if (setHour > 24) {
+        setHour = 0
+    }
     RTC_DS1307.setTime(RTC_DS1307.TimeType.HOUR, setHour)
 })
 
@@ -11,6 +14,9 @@ input.onButtonPressed(Button.AB, function () {
 input.onButtonPressed(Button.B, function () {
     let setMinute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
     setMinute = setMinute + 1
+    if (setMinute > 60) {
+        setMinute = 0
+    }
     RTC_DS1307.setTime(RTC_DS1307.TimeType.MINUTE, setMinute)
 })
 
