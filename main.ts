@@ -30,10 +30,7 @@ basic.forever(function () {
         hourString = "0"
     }
     hourString = hourString + hour.toString()
-    let hourValue = 0
-    if (hour > 0) {
-        hourValue = Math.floor((1023 / 23) * hour)
-    }
+    let hourValue = Math.floor((1023 / 23) * hour)
     pins.analogWritePin(AnalogPin.P0, hourValue)
 
     let minuteString = "";
@@ -41,10 +38,7 @@ basic.forever(function () {
         minuteString = "0"
     }
     minuteString = minuteString + minute.toString()
-    let minuteValue = 0
-    if (minute > 0) {
-        minuteValue = Math.floor((1023 / 60) * minute)
-    }
+    let minuteValue = Math.floor((1023 / 60) * minute)
     pins.analogWritePin(AnalogPin.P1, minuteValue)
 
     let secondString = "";
@@ -52,10 +46,7 @@ basic.forever(function () {
         secondString = "0"
     }
     secondString = secondString + second.toString()
-    let secondValue = 0
-    if (second > 0) {
-        secondValue = Math.floor((1023 / 60) * second)
-    }
+    let secondValue = Math.floor((1023 / 60) * second)
     pins.analogWritePin(AnalogPin.P2, secondValue)
 
     basic.showString(hourString + ":" + minuteString + "." + secondString +  "          ")
