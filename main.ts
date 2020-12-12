@@ -35,7 +35,7 @@ input.onButtonPressed(Button.AB, function () {
     }
     secondString = secondString + second.toString()
 
-    basic.showString(hourString + ":" + minuteString + "." + secondString +  "          ")
+    basic.showString(hourString + ":" + minuteString + "." + secondString +  " ")
 })
 
 
