@@ -56,5 +56,10 @@ basic.forever(function () {
 let hour = 0
 let minute = 0
 let second = 0
-RTC_DS1307.DateTime(2020, 12, 08, 14, 28, 0)
+    hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
+    minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
+    second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
+if (hour == 0 && minute == 0){
+ RTC_DS1307.DateTime(2020, 12, 08, 14, 28, 0)
+}
 
