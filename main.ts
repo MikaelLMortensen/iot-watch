@@ -1,4 +1,5 @@
 let currentDate = { year: 1900, month: 1, day: 1, hour:0, minute:0, second:0, daylightsaving:false }
+let lastTimeUpdate = currentDate
 
 basic.showIcon(IconNames.SmallSquare)
 ESP8266_IoT.initWIFI(SerialPin.P8, SerialPin.P12, BaudRate.BaudRate115200)
@@ -34,6 +35,7 @@ basic.forever(function () {
     let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
     let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
     let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
+    let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
 
     let hourValue = Math.floor(1023 * hour / 24)
     let minuteValue = Math.floor(1023 * minute / 60)
@@ -42,6 +44,11 @@ basic.forever(function () {
     pins.analogWritePin(AnalogPin.P0, secondValue)
     pins.analogWritePin(AnalogPin.P1, minuteValue)
     pins.analogWritePin(AnalogPin.P2, hourValue)
+
+    if (hour == 3 && minute > 30 && lastTimeUpdate.day != day) {
+        loadDate()
+        lastTimeUpdate = currentDate
+    }
 })
 
 currentDate.hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
@@ -141,7 +148,6 @@ function loadDate(){
 
         if (json.indexOf("currentDateTime") > 0) {
             setCurrentDate(json);
-
         } else {
             basic.showString("JSON Invalid: " + json)
         }
