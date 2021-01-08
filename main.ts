@@ -2,6 +2,30 @@ let currentDate = { year: 1900, month: 1, day: 1, hour:0, minute:0, second:0, da
 
 let ssid = ""
 let pw = "" 
+let sendTime = false
+
+radio.setGroup(17)
+radio.onReceivedString(function (receivedString: string) {
+    if (receivedString == 'gettime') {
+        sendTime = true
+    }
+})
+
+function radioSendTime()  {
+    let time = currentDate
+
+    radio.sendValue("hour", RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR))
+    basic.pause(500)
+    radio.sendValue("minute", RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE))
+    basic.pause(500)
+    radio.sendValue("second", RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND))
+    basic.pause(500)
+    radio.sendValue("year", RTC_DS1307.getTime(RTC_DS1307.TimeType.YEAR))
+    basic.pause(500)
+    radio.sendValue("month", RTC_DS1307.getTime(RTC_DS1307.TimeType.MONTH))
+    basic.pause(500)
+    radio.sendValue("day", RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY))
+}
 
 input.onButtonPressed(Button.B, function () {
    basic.showIcon(IconNames.Heart)
@@ -27,12 +51,34 @@ input.onButtonPressed(Button.AB, function () {
    showTime()
 })
 
+basic.forever(function () {
+    let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
+    let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
+    let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
+    let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
+
+    showAnalogTime()
+
+    if (sendTime) {
+        radioSendTime()
+        sendTime = false
+    }
+
+    // Force load date at 3:30 or when device is swithced on
+    if ((hour == 3 && minute > 30 && currentDate.day != day) || currentDate.year == 1900) {
+        loadDate()
+    }
+})
 
 function showAnalogTime() {
     let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
     let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
     let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
     let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
+
+    if (hour > 12) {
+        hour = hour - 12
+    }
 
     let hourValue = Math.floor(1023 * hour / 12)
     let minuteValue = Math.floor(975 * minute / 60)
@@ -43,20 +89,6 @@ function showAnalogTime() {
     pins.analogWritePin(AnalogPin.P0, hourValue)
 }
 
-
-basic.forever(function () {
-    let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
-    let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
-    let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
-    let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
-
-    showAnalogTime()
-
-    // Force load date at 3:30 or when device is swithced on
-    if ((hour == 3 && minute > 30 && currentDate.day != day) || currentDate.year == 1900) {
-        loadDate()
-    }
-})
 
 // Show time in display:
 function showTime() {
