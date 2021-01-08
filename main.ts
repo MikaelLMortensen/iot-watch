@@ -1,11 +1,7 @@
 let currentDate = { year: 1900, month: 1, day: 1, hour:0, minute:0, second:0, daylightsaving:false }
-let lastTimeUpdate = currentDate
 
-basic.showIcon(IconNames.SmallSquare)
-ESP8266_IoT.initWIFI(SerialPin.P8, SerialPin.P12, BaudRate.BaudRate115200)
-basic.showIcon(IconNames.Square)
-ESP8266_IoT.connectWifi("", "")
-basic.showIcon(IconNames.Yes)
+let ssid = ""
+let pw = "" 
 
 input.onButtonPressed(Button.B, function () {
    basic.showIcon(IconNames.Heart)
@@ -31,33 +27,36 @@ input.onButtonPressed(Button.AB, function () {
    showTime()
 })
 
+
+function showAnalogTime() {
+    let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
+    let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
+    let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
+    let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
+
+    let hourValue = Math.floor(1023 * hour / 12)
+    let minuteValue = Math.floor(975 * minute / 60)
+    let secondValue = Math.floor(975 * second / 60)
+
+    pins.analogWritePin(AnalogPin.P2, secondValue)
+    pins.analogWritePin(AnalogPin.P1, minuteValue)
+    pins.analogWritePin(AnalogPin.P0, hourValue)
+}
+
+
 basic.forever(function () {
     let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
     let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
     let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
     let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
 
-    let hourValue = Math.floor(1023 * hour / 24)
-    let minuteValue = Math.floor(1023 * minute / 60)
-    let secondValue = Math.floor(1023 * second / 60)
+    showAnalogTime()
 
-    pins.analogWritePin(AnalogPin.P0, secondValue)
-    pins.analogWritePin(AnalogPin.P1, minuteValue)
-    pins.analogWritePin(AnalogPin.P2, hourValue)
-
-    if (hour == 3 && minute > 30 && lastTimeUpdate.day != day) {
+    // Force load date at 3:30 or when device is swithced on
+    if ((hour == 3 && minute > 30 && currentDate.day != day) || currentDate.year == 1900) {
         loadDate()
-        lastTimeUpdate = currentDate
     }
 })
-
-currentDate.hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
-currentDate.minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
-currentDate.second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
-if (currentDate.hour == 0 && currentDate.minute == 0){
- RTC_DS1307.DateTime(2020, 12, 08, 14, 28, 0)
-}
-
 
 // Show time in display:
 function showTime() {
@@ -136,6 +135,14 @@ function setCurrentDate(json:string) {
 
 function loadDate(){
 
+    if (ESP8266_IoT.wifiState(false)) {      
+        basic.showIcon(IconNames.SmallSquare)
+        ESP8266_IoT.initWIFI(SerialPin.P8, SerialPin.P12, BaudRate.BaudRate115200)
+        basic.showIcon(IconNames.Square)
+        ESP8266_IoT.connectWifi(ssid, pw)
+        basic.showIcon(IconNames.Yes)
+    }
+
     if (ESP8266_IoT.wifiState(true)) {      
         let response = getClock()
         //basic.showString("Len:" + response.length.toString()+ "  ")
@@ -151,6 +158,7 @@ function loadDate(){
         } else {
             basic.showString("JSON Invalid: " + json)
         }
+        showTime()
     } else {
         basic.showString("WIFI not ready")
     }
