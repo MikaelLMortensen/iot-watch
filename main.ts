@@ -4,16 +4,31 @@ let ssid = ""
 let pw = "" 
 let sendTime = false
 
+let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
+let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
+let firstminute = minute // used to delay loading from internet
+let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
+let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
+
 radio.setGroup(17)
 radio.onReceivedString(function (receivedString: string) {
     if (receivedString == 'gettime') {
         sendTime = true
     }
+    if (receivedString == 'gettime2') {
+        sendTime = true
+    }
 })
 
-function radioSendTime()  {
-    let time = currentDate
+function radioSendTime2()  {
+    let hours = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR);
+    let minutes = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE);
+    let seconds = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND);
+    let timeNumber = hours * 100 * 100 + minutes * 100 + seconds;
+    radio.sendValue("hhmmss", timeNumber)
+}
 
+function radioSendTime()  {
     radio.sendValue("hour", RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR))
     basic.pause(500)
     radio.sendValue("minute", RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE))
@@ -38,10 +53,8 @@ input.onButtonPressed(Button.B, function () {
    RTC_DS1307.setTime(RTC_DS1307.TimeType.MINUTE, currentDate.minute)
    showTime()
 })
-
+let disableAnalogWatch = false
 input.onButtonPressed(Button.A, function () {
-    // let test = '{"$id":"1","currentDateTime":"2021-01-07T06:38+01:00","utcOffset":"01:00:00","isDayLightSavingsTime":false,"dayOfTheWeek":"Thursday","timeZoneName":"Central Europe Standard Time","currentFileTime":132544751342391126,"ordinalDate":"2021-7","serviceResponse":null}';
-    // setCurrentDate(test)
     showDate()
 })
 
@@ -52,35 +65,42 @@ input.onButtonPressed(Button.AB, function () {
 })
 
 basic.forever(function () {
-    let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
-    let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
-    let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
-    let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
+    if (disableAnalogWatch) {
+        return
+    }
+    hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
+    minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
+    second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
+    day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
 
-    showAnalogTime()
+    showAnalogTime(hour, minute, second)
 
     if (sendTime) {
-        radioSendTime()
+        radioSendTime2()
         sendTime = false
     }
 
     // Force load date at 3:30 or when device is swithced on
     if ((hour == 3 && minute > 30 && currentDate.day != day) || currentDate.year == 1900) {
-        loadDate()
+        // we delay loading time up to 1 minute to allow radioclock to startup
+        if (minute != firstminute) {
+            loadDate()
+        }
     }
 })
 
-function showAnalogTime() {
-    let hour = RTC_DS1307.getTime(RTC_DS1307.TimeType.HOUR)
-    let minute = RTC_DS1307.getTime(RTC_DS1307.TimeType.MINUTE)
-    let second = RTC_DS1307.getTime(RTC_DS1307.TimeType.SECOND)
-    let day = RTC_DS1307.getTime(RTC_DS1307.TimeType.DAY)
+function showAnalogTime(hour:number, minute:number, second:number) {
 
     if (hour > 12) {
         hour = hour - 12
     }
 
-    let hourValue = Math.floor(1023 * hour / 12)
+    // trim accuracy on VU - meter
+    let hourValue = Math.floor(1045 * hour / 12)
+    if (hourValue > 1023)
+    {
+        hourValue = 1023
+    }
     let minuteValue = Math.floor(975 * minute / 60)
     let secondValue = Math.floor(975 * second / 60)
 
@@ -88,7 +108,6 @@ function showAnalogTime() {
     pins.analogWritePin(AnalogPin.P1, minuteValue)
     pins.analogWritePin(AnalogPin.P0, hourValue)
 }
-
 
 // Show time in display:
 function showTime() {
@@ -162,7 +181,6 @@ function setCurrentDate(json:string) {
 
     currentDate.hour = getNumber(hm[0]);
     currentDate.minute = getNumber(hm[1]);
-
 }
 
 function loadDate(){
@@ -233,7 +251,6 @@ function myExecuteHttpMethod(host: string, port: number, urlPath: string): void 
     writeToSerial("AT+CIPSEND=" + (data.length + 2), 1000)
     writeToSerial(data, 0)
 }
-
 
 function writeToSerial(data: string, waitTime: number): void {
     serial.writeString(data + "\u000D" + "\u000A")
