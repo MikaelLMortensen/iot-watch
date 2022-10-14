@@ -9,3 +9,7 @@ _site
 *.tgz
 .header.json
 .simstate.json
+/.vs/iot-watch/FileContentIndex
+/.vs/iot-watch/v17/TestStore/0
+/.vs/iot-watch/v17
+/.vs
