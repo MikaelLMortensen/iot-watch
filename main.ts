@@ -155,7 +155,7 @@ function showDate() {
 }
 
 // Handle 
-// {"$id":"1","currentDateTime":"2021-01-07T06:38+01:00","utcOffset":"01:00:00","isDayLightSavingsTime":false,"dayOfTheWeek":"Thursday","timeZoneName":"Central Europe Standard Time","currentFileTime":132544751342391126,"ordinalDate":"2021-7","serviceResponse":null}
+// {"$id":"1","currentDateTime":"2021-12-15T07:24+01:00","utcOffset":"01:00:00","isDayLightSavingsTime":false,"dayOfTheWeek":"Wednesday","timeZoneName":"Central Europe Standard Time","currentFileTime":132840266412319093,"ordinalDate":"2021-349","serviceResponse":null}
 // Source: http://worldclockapi.com/api/jsonp/cet/now?callback=mycallback
 
 function setCurrentDate(json:string) {
@@ -181,6 +181,11 @@ function setCurrentDate(json:string) {
 
     currentDate.hour = getNumber(hm[0]);
     currentDate.minute = getNumber(hm[1]);
+
+    RTC_DS1307.DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, currentDate.minute, currentDate.second)
+    OLED.writeNumNewLine(currentDate.hour)
+    OLED.writeString(":")
+    OLED.writeNumNewLine(currentDate.minute)
 }
 
 function loadDate(){
